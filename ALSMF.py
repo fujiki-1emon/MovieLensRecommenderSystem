@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 import scipy as sp
+import pandas as pd
 
 
 class ALSMF(object):
@@ -100,9 +101,13 @@ class ALSMF(object):
 
         Returns
         ----------
-        top_n_recommendations
+        top_n_items (ndarray)
         '''
-        recommend = self.prediction[user, self.train_matrix[user] == 0]
-        recommend_top_n = np.argsort(-recommend)[:top_n]
+        if self.prediction is None:
+            self.predict()
+        train_s = pd.Series(self.train_matrix[user, :])
+        pred_s = pd.Series(self.prediction[user, :])
+        recommend = pred_s[train_s == 0].sort_values(ascending=False)
+        top_n_items = recommend.head(top_n).index.get_values()
 
-        return recommend_top_n
+        return top_n_items
