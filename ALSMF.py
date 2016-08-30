@@ -32,6 +32,8 @@ class ALSMF(object):
         # Initialize the user-factor matrix and the item-factor matrix with random number [0, 3)
         self.user_factor_matrix = 3 * np.random.rand(self.n_users, self.n_factors)
         self.item_factor_matrix = 3 * np.random.rand(self.n_items, self.n_factors)
+        # Initialize item-factor matrix by assigning the average rating for that movie as the first row
+        self.item_factor_matrix[0, :] = self.train_matrix[:, 0].mean()
 
         t0 = time.time()
         for i in range(self.n_iter):
