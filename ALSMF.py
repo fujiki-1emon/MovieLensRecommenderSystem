@@ -6,7 +6,7 @@ import scipy as sp
 
 class ALSMF(object):
 
-    def __init__(self, train_matrix, reg_param, n_factors, n_iter, explicit=True):
+    def __init__(self, train_matrix, reg_param, n_factors, n_iter, explicit=True, alpha=0):
         '''
         Parameters
         ----------
@@ -20,12 +20,18 @@ class ALSMF(object):
         self.n_users = self.train_matrix.shape[0]
         self.n_items = self.train_matrix.shape[1]
         self.reg_param = reg_param
+        self.alpha = alpha
         self.n_factors = n_factors
         self.n_iter = n_iter
         self.explicit = explicit
         self.user_factor_matrix = None
         self.item_factor_matrix = None
         self.prediction = None
+        if self.explicit is True:
+            self.confidence_matrix = self.train_matrix.copy()
+            self.confidence_matrix[self.confidence_matrix > 0] = 1
+        else:
+            self.confidence_matrix = 1 + self.alpha * self.train_matrix
 
     def build_model(self):
         '''Training and building a latent factor model with alternating least squares method.'''
@@ -63,9 +69,7 @@ class ALSMF(object):
         # f * f dentity matrix (f: n_factors)
         E = np.eye(self.n_factors)
 
-        if self.explicit:
-            C = R.copy()
-            C[C > 0] = 1
+        C = self.confidence_matrix if mode == 'user' else self.confidence_matrix.T
 
         for i, Ci in enumerate(C):
             # m * m or n * n diagonal matrix (n: n_users, m: n_items)
